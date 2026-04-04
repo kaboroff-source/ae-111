@@ -264,13 +264,17 @@ a:hover {
 }
 
 .button {
-    height: 50px;
+    min-height: 50px;
     width: 200px;
     border-radius: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
+    padding: 10px 15px;
+    text-align: center;
+    word-break: break-word;
+    line-height: 1.4;
 }
 
 .button.fb-blue:hover {
