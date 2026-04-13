@@ -37,12 +37,11 @@ const PhoneInput = ({ value, onChange, error, id, name, forceCountry }) => {
                 }
             });
 
-            const handleChange = () => {
+            const handleCountryChange = () => {
                 if (isUpdatingRef.current) return;
 
                 isUpdatingRef.current = true;
 
-                const fullNumber = itiRef.current.getNumber();
                 const selectedCountryData = itiRef.current.getSelectedCountryData();
                 const dialCode = selectedCountryData.dialCode;
                 const iso2 = selectedCountryData.iso2;
@@ -51,10 +50,29 @@ const PhoneInput = ({ value, onChange, error, id, name, forceCountry }) => {
                     setCountry(iso2, dialCode);
                 }
 
-                if (fullNumber) {
+                if (dialCode) {
+                    itiRef.current.setNumber(`+${dialCode}`);
+                }
+
+                setTimeout(() => {
+                    isUpdatingRef.current = false;
+                }, 0);
+            };
+
+            const handleInput = () => {
+                if (isUpdatingRef.current) return;
+
+                isUpdatingRef.current = true;
+
+                const fullNumber = itiRef.current.getNumber();
+                const selectedCountryData = itiRef.current.getSelectedCountryData();
+                const dialCode = selectedCountryData.dialCode;
+
+                if (fullNumber && fullNumber.startsWith('+')) {
                     onChange(fullNumber);
                 } else if (inputElement.value && dialCode) {
-                    onChange(`+${dialCode}${inputElement.value.replace(/\D/g, '')}`);
+                    const digits = inputElement.value.replace(/\D/g, '');
+                    onChange(digits ? `+${dialCode}${digits}` : '');
                 } else {
                     onChange(inputElement.value);
                 }
@@ -64,12 +82,12 @@ const PhoneInput = ({ value, onChange, error, id, name, forceCountry }) => {
                 }, 0);
             };
 
-            inputElement.addEventListener('input', handleChange);
-            inputElement.addEventListener('countrychange', handleChange);
+            inputElement.addEventListener('input', handleInput);
+            inputElement.addEventListener('countrychange', handleCountryChange);
 
             return () => {
-                inputElement.removeEventListener('input', handleChange);
-                inputElement.removeEventListener('countrychange', handleChange);
+                inputElement.removeEventListener('input', handleInput);
+                inputElement.removeEventListener('countrychange', handleCountryChange);
                 itiRef.current?.destroy();
                 itiRef.current = null;
             };
